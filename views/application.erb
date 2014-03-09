@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Sinatra Test</title>
+	<link rel="stylesheet" href="<%= url('/style.css') %>">
+</head>
+<body>
+	<div class="header">
+		<div class="logo"><a href="/">Sinatra Test</a></div>
+		<nav class="menu">
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li><a href="/about">About</a></li>
+				<li><a href="/lists">Lists</a></li>
+			</ul>
+		</nav>
+	</div>
+	<div class="content">
+		<%= yield %>
+	</div>
+</body>
+</html>
