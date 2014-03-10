@@ -11,12 +11,12 @@
 		<nav class="menu">
 			<ul>
 				<li><a href="/">Home</a></li>
-				<li><a href="/about">About</a></li>
-				<li><a href="/lists">Lists</a></li>
+				<li><a href="/sets">Sets</a></li>
 			</ul>
 		</nav>
 	</div>
 	<div class="content">
+		<span class="error"><%= @error || "" %></span>
 		<%= yield %>
 	</div>
 </body>

@@ -1,1 +1,13 @@
-<p>Hello, World!</p>
+<h1>Sets</h1>
+<table class="sets_list">
+	<% @sets.each do |key, set| %>
+		<tr>
+			<td class="set_name"><%= set[:name] %></td>
+			<td><a href="/sets/<%= set[:name] %>">View</a></td>
+			<td><a href="/sets/<%= set[:name] %>/play">Play</a></td>
+			<td><a href="/sets/<%= set[:name] %>/edit">Edit</a></td>
+			<td><a href="/sets/<%= set[:name] %>/delete">Delete</a></td>
+		</tr>
+	<% end %>
+</table>
+<h3 class="new_set_btn"><a href="/sets/new">Create New Set</a></h3>

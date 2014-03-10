@@ -22,6 +22,19 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 
+  # this should give us Rack test methods
+  config.include Rack::Test::Methods
+
 end
 
 Capybara.app = Sinatra::Application.new
+
+# will this let us post stuff?
+def app
+	Sinatra::Application.new
+end
+
+# will this let us test session stuff?
+def session
+  last_request.env['rack.session']
+end
