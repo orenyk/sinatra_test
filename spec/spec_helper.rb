@@ -5,9 +5,10 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 ENV['RACK_ENV'] = 'test'
-require_relative '../sinatra'
 require 'rspec'
 require 'capybara/rspec'
+require 'rack/test'
+require_relative '../sinatra'
 
 set :views => File.join(File.dirname(__FILE__), "..", "views")
 
@@ -29,12 +30,17 @@ end
 
 Capybara.app = Sinatra::Application.new
 
+Capybara.register_driver :rack_test do |app|
+  Capybara::RackTest::Driver.new(app, :headers =>  { 'User-Agent' => 'Capybara' })
+end
+
+
 # will this let us post stuff?
 def app
 	Sinatra::Application.new
 end
 
-# will this let us test session stuff?
-def session
-  last_request.env['rack.session']
-end
+# # will this let us test session stuff?
+# def session
+#   last_request.env['rack.session']
+# end

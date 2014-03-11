@@ -3,7 +3,7 @@ require 'sinatra/reloader' if development?
 
 # Configure application
 configure do
-	enable :sessions unless test?
+	enable :sessions
 	enable :method_override
 end
 
@@ -22,11 +22,36 @@ get '/' do
 	end
 end
 
-# sets page
-get '/sets/?' do
-	@sets = session[:sets] ? session[:sets] : {}
+# create a set
+post '/sets/new' do
+	@name = params[:name]
+	@urls = params[:urls].split(',').map(&:strip)
+	if @name.empty? or @urls == []
+		@error = 'invalid parameters'
+		erb :application do
+			erb :new
+		end
+	else
+		@sets = session[:sets] ? session[:sets] : {}
+		@sets[@name] = { name: @name, urls: @urls }
+		session[:sets] = @sets
+
+		redirect('/sets')
+	end
+end
+
+# edit sets
+get '/sets/:name/edit/?' do
+	@name = params[:name]
+	@sets = session[:sets]
+	@set = @sets ? @sets[@name] : nil
 	erb :application do
-		erb :index
+		if @set
+			@urls = @set[:urls]
+			erb :edit
+		else
+			erb :new
+		end
 	end
 end
 
@@ -44,34 +69,21 @@ get '/sets/:name/?' do
 	end
 end
 
-# create a set
-post '/sets/new' do
-	@name = params[:name]
-	@urls = params[:urls].split(',').map(&:strip)
-	if @name.empty? or @urls == []
-		@error = 'invalid parameters'
-		erb :application do
-			erb :new
-		end
-	else
-		@sets = session[:sets] ? session[:sets] : {}
-		@sets[@name] = { name: @name, urls: @urls }
-		session[:sets] = @sets
-
-		erb :application do
-			erb :index
-		end
+# sets page
+get '/sets/?' do
+	@sets = session[:sets] ? session[:sets] : {}
+	erb :application do
+		erb :index
 	end
-
-	# redirect to("/sets/#{@name}")
-	# NOTE: we can't use redirects if we want to test the responses to requests
 end
+
 
 get '*/params/?' do
 	erb :application do
 		params.inspect
 	end
 end
+
 
 get '/session/?' do
 	erb :application do
@@ -81,6 +93,20 @@ end
 
 get '/session/clear' do
 	session.clear
-
 	redirect to('/session')
 end
+
+
+# FOR LATER?
+# # can we get all the methods in one route?
+# get '/sets/?:name?/?:method?/?' do
+# 	@sets = session[:sets] ? session[:sets] : {}
+# 	@name = params[:name]
+# 	if @name.empty?
+# 		@method = 'index'
+# 	else
+# 		@set = @sets ? @sets[@name] : nil
+# 		@method = params[:method]
+# 		if @method.empty?
+# 			@method = 'show'
+# 		end
