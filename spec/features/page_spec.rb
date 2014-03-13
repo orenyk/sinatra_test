@@ -42,8 +42,8 @@ describe 'site pages' do
 			end
 			it 'should save' do
 				click_button 'Create'
-				subject.should have_content 'fizzbuzz'
-				subject.should have_content 'View'
+				subject.should have_selector('h1', text: 'fizzbuz')
+				subject.should have_link('Edit', href: '/sets/fizzbuzz/edit')
 			end
 		end
 
@@ -52,6 +52,7 @@ describe 'site pages' do
 			it 'should not save' do
 				click_button 'Create'
 				subject.should have_no_content('foobar')
+				subject.should have_selector("span[class='error']", text: 'invalid parameters')
 			end
 		end
 
@@ -94,9 +95,15 @@ describe 'site pages' do
 	end
 
 	describe 'Edit set page', type: :feature do
+		before { }
 		context 'with existing set' do
 			pending 'tests for edit page'
-			pending 'tests for create action'
+			describe 'with valid information' do
+				pending 'tests for create action'
+			end
+			describe 'with invalid information' do
+				pending 'test for redirect with error'
+			end
 		end
 		context 'without existing set' do
 			pending 'tests for new page'
