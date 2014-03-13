@@ -8,10 +8,28 @@ configure do
 end
 
 helpers do
-	# check for set existence
-	def set_exists?(set)
+	# extract the set with a given name
+	def extract_set(name)
 		@sets = session[:sets]
-		!@sets[set]
+		@sets ? @sets[name] : nil
+	end
+
+	# extract set parameters from form
+	def extract_set_params()
+		@name = params[:name]
+		@urls = params[:urls].split(',').map(&:strip)
+		[@name, @urls]
+	end
+
+	# write set to session
+	def write_set(name, urls)
+		@sets = session[:sets] ? session[:sets] : {}
+		@sets[@name] = { name: @name, urls: @urls }
+		session[:sets] = @sets
+	end
+
+	# remove set from session
+	def remove_set(name)
 	end
 end
 
@@ -24,27 +42,28 @@ end
 
 # create a set
 post '/sets/new' do
-	@name = params[:name]
-	@urls = params[:urls].split(',').map(&:strip)
+	@name, @urls = extract_set_params()
+	# if invalid parameters
 	if @name.empty? or @urls == []
 		@error = 'invalid parameters'
 		erb :application do
 			erb :new
 		end
 	else
-		@sets = session[:sets] ? session[:sets] : {}
-		@sets[@name] = { name: @name, urls: @urls }
-		session[:sets] = @sets
-
-		redirect('/sets')
+		# write set
+		@sets = write_set(@name, @urls)
+		# redirect("/sets/@name")
+		erb :application do
+			@set = @sets[@name]
+			erb :show
+		end
 	end
 end
 
 # edit sets
 get '/sets/:name/edit/?' do
 	@name = params[:name]
-	@sets = session[:sets]
-	@set = @sets ? @sets[@name] : nil
+	@set = extract_set(@name)
 	erb :application do
 		if @set
 			@urls = @set[:urls]
@@ -70,8 +89,7 @@ end
 # create and view sets with the same path?
 get '/sets/:name/?' do
 	@name = params[:name] == "new" ? "" : params[:name]
-	@sets = session[:sets]
-	@set = @sets ? @sets[@name] : nil
+	@set = extract_set(@name)
 	erb :application do
 		if @set
 			erb :show
