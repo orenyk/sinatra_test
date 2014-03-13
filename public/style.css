@@ -57,3 +57,26 @@
 .sets_list a:hover {
 	color: black;
 }
+
+/* /sets/:name */
+.set_actions {
+	padding-left: 0;
+}
+
+.set_actions li {
+	display: inline-block;
+	padding-right: 10px;
+}
+
+.set_actions a {
+	text-decoration: none;
+	color: gray;
+}
+
+.set_actions a:visited {
+	color: gray;
+}
+
+.set_actions a:hover {
+	color: black;
+}

@@ -55,6 +55,18 @@ get '/sets/:name/edit/?' do
 	end
 end
 
+# update sets
+put '/sets/:name/?' do
+end
+
+# delete sets - currently use GET since I'm not sure how to fake a DELETE request
+get '/sets/:name/delete/?' do
+end
+
+# play set - TODO
+get '/sets/:name/play/?' do
+end
+
 # create and view sets with the same path?
 get '/sets/:name/?' do
 	@name = params[:name] == "new" ? "" : params[:name]
@@ -78,12 +90,17 @@ get '/sets/?' do
 end
 
 
-get '*/params/?' do
+get '/sets/:name/params/?' do
 	erb :application do
 		params.inspect
 	end
 end
 
+get '/sets/:name/:method/params/?' do
+	erb :application do
+		params.inspect
+	end
+end
 
 get '/session/?' do
 	erb :application do
