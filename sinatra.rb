@@ -75,7 +75,24 @@ get '/sets/:name/edit/?' do
 end
 
 # update sets
-put '/sets/:name/?' do
+put '/sets/:oldname/?' do
+	@oldname = params[:oldname]
+	@name, @urls = extract_set_params()
+	# if invalid parameters
+	if @name.empty? or @urls == []
+		@error = 'invalid parameters'
+		# redirect to edit
+	else
+		# if no name change
+		if @name == @oldname
+			write_set(@name, @urls)
+		# with name change
+		else
+			write_set(@name, @urls)
+			remove_set(@oldname)
+		end
+		redirect("/sets/#{@name}")
+	end
 end
 
 # delete sets - currently use GET since I'm not sure how to fake a DELETE request
