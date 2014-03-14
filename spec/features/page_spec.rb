@@ -69,6 +69,42 @@ describe 'site pages' do
 		end
 	end
 
+	# Using Rack::Test
+	# now we can test whether or not the session is modified with the form
+	describe 'Create method', type: :feature do
+		let(:session) { last_request.env['rack.session'] }
+		context 'with valid parameters' do
+			before do
+				post '/sets/new', { name: 'fizzbuzz', urls: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+			end
+			it 'should update the session' do
+				get '/sets'
+				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['one', 'two', 'three'] } })
+			end
+		end
+
+		context 'with invalid name' do
+			before do
+				post '/sets/new', { name: '', urls: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+			end
+			it 'should not update the session' do
+				get '/sets'
+				expect(session[:sets]).to eq({ })
+			end
+		end
+
+		context 'with invalid urls' do
+			before do
+				post '/sets/new', { name: 'fizzbuzz', urls: '' }, { 'rack.session' => { sets: { } } }
+			end
+			it 'should not update the session' do
+				get '/sets'
+				expect(session[:sets]).to eq({ })
+			end
+		end
+	end
+
+
 	describe 'Show set page', type: :feature do
 		context 'with existing set' do
 			before do
