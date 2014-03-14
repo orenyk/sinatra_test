@@ -75,24 +75,38 @@ end
 
 # update sets
 put '/sets/:oldname/?' do
-	@oldname = params[:oldname]
-	@name, @urls = extract_set_params()
-	# if invalid parameters
-	if @name.empty? or @urls == []
-		@error = 'invalid parameters'
-		# redirect to edit
-	else
-		# if no name change
-		if @name == @oldname
-			write_set(@name, @urls)
-		# with name change
+	@oldname = params[:oldname] == "new" ? "" : params[:oldname]
+	@set = extract_set(@oldname)
+	# if set exists
+	if @set
+		@name, @urls = extract_set_params()
+		# if invalid parameters
+		if @name.empty? or @urls == []
+			@error = 'invalid parameters'
+			@name = @oldname
+			@urls = @set[:urls]
+			erb :application do
+				erb :edit
+			end
 		else
-			write_set(@name, @urls)
-			remove_set(@oldname)
-		end
-		erb :application do
+			# if no name change
+			if @name == @oldname
+				write_set(@name, @urls)
+			# with name change
+			else
+				write_set(@name, @urls)
+				remove_set(@oldname)
+			end
 			@set = @sets[@name]
-			erb :show
+			erb :application do
+				erb :show
+			end
+		end
+	# if set doesn't exist
+	else
+		@name = @oldname
+		erb :application do
+			erb :new
 		end
 	end
 end

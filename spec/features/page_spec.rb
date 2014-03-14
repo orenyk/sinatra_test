@@ -134,19 +134,80 @@ describe 'site pages' do
 		end
 	end
 
+	# USING RACK::TEST
+	# we can only test the existence of the edit page for an existing set; however, since we can't access the session using Capybara, we can't run through the edit set form since there will be no existing sets
 	describe 'Edit set page', type: :feature do
-		before { }
+		let(:session) { last_request.env['rack.session'] }
 		context 'with existing set' do
-			pending 'tests for edit page'
+			before do
+				define_set_in_session('pants')
+				get '/sets/pants/edit'
+			end
+
+			it_behaves_like 'all pages'
+			it { should have_selector('h1', text: 'Edit pants') }
+
 			describe 'with valid information' do
-				pending 'tests for create action'
+				describe 'with same name' do
+					before { put '/sets/pants', { name: 'pants', urls: 'one, two, three' } }
+					it 'should update the session' do
+						expect(session[:sets]).to eq({ "pants" => { name: 'pants', urls: ['one', 'two', 'three'] } })
+					end
+					it 'should show the new information' do
+						subject.should have_selector('h1', text: 'pants')
+						subject.should have_link('Edit', href: '/sets/pants/edit')
+						subject.should have_selector('td', text: '["one", "two", "three"]')
+					end
+				end
+
+				describe 'with different name' do
+					before { put '/sets/pants', { name: 'fizzbuzz', urls: 'one, two, three' } }
+					it 'should update the session' do
+						expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['one', 'two', 'three'] } })
+					end
+					it 'should show the new information' do
+						subject.should have_selector('h1', text: 'fizzbuzz')
+						subject.should have_selector('td', text: '["one", "two", "three"]')
+					end
+				end
 			end
 			describe 'with invalid information' do
-				pending 'test for redirect with error'
+				describe 'with invalid name' do
+					before { put '/sets/pants', { name: '', urls: 'one, two, three' } }
+					it 'should not update the session' do
+						expect(session[:sets]).to eq({ "pants" => { name: 'pants', urls: ['a', 'b', 'c'] } })
+					end
+					it 'should show the old information with error' do
+						subject.should have_selector('h1', text: 'Edit pants')
+						subject.should have_selector("span[class='error']", text: 'invalid parameters')
+						subject.should have_selector("input[value='pants']")
+						subject.should have_selector("input[value='a, b, c']")
+					end
+
+					describe 'with invalid urls' do
+						before { put '/sets/pants', { name: 'pants', urls: '' } }
+						it 'should not update the session' do
+							expect(session[:sets]).to eq({ "pants" => { name: 'pants', urls: ['a', 'b', 'c'] } })
+						end
+						it 'should show the old information with error' do
+							subject.should have_selector('h1', text: 'Edit pants')
+							subject.should have_selector("span[class='error']", text: 'invalid parameters')
+							subject.should have_selector("input[value='pants']")
+							subject.should have_selector("input[value='a, b, c']")
+						end
+					end
+				end
 			end
 		end
 		context 'without existing set' do
-			pending 'tests for new page'
+			before { put '/sets/pants' }
+			it_behaves_like 'all pages'
+			it 'should redirect to the new set page' do
+				subject.should have_selector('h1', text: 'Create New Set')
+			end
+			it 'should have the set name filled in' do
+				subject.should have_selector("input[value='pants']")
+			end
 		end
 	end
 
