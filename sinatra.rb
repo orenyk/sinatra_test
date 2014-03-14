@@ -118,6 +118,21 @@ end
 
 # delete sets - currently use GET since I'm not sure how to fake a DELETE request
 get '/sets/:name/delete/?' do
+	@name = params[:name]
+	@set = extract_set(@name)
+	if @set
+		remove_set(@name)
+		@sets = session[:sets]
+		erb :application do
+			erb :index
+		end
+	else
+		@sets = session[:sets]
+		@error = 'invalid set'
+		erb :application do
+			erb :index
+		end
+	end
 end
 
 # play set - TODO

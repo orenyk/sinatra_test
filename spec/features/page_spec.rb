@@ -219,12 +219,34 @@ describe 'site pages' do
 	end
 
 	describe 'Delete set link', type: :feature do
+		let(:session) { last_request.env['rack.session'] }
 		context 'with existing set' do
-			pending 'test for deletion'
-			pending 'test for redirection to sets page'
+			before do
+				define_sets_in_session('fizzbuzz', 'pants')
+				get '/sets/pants/delete'
+			end
+			it 'modifies the session' do
+				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['a', 'b', 'c'] } })
+			end
+			it_behaves_like 'all pages'
+			it 'displays the sets index' do
+				subject.should have_selector('h1', text: 'Sets')
+				subject.should have_content('fizzbuzz')
+				subject.should_not have_content('pants')
+			end
 		end
+
 		context 'without existing sets' do
-			pending 'test for redirection to sets page'
+			before do
+				define_set_in_session('fizzbuzz')
+				get '/sets/pants/delete'
+			end
+			it_behaves_like 'all pages'
+			it 'displays the sets index with error' do
+				subject.should have_selector("span[class='error']", text: 'invalid set')
+				subject.should have_selector('h1', text: 'Sets')
+				subject.should have_content('fizzbuzz')
+			end
 		end
 	end
 end
