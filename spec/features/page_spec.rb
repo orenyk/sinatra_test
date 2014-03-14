@@ -233,5 +233,10 @@ end
 
 # create a set in the Rack::Test MockSession
 def define_set_in_session(name, urls=['a','b','c'])
-	get '/', {}, { 'rack.session' => { "sets" => { "pants" => {:name => "pants", :urls => ["#{urls[0]}", "#{urls[1]}", "#{urls[2]}"] } } } }
+	get '/', {}, { 'rack.session' => { "sets" => { "#{name}" => {:name => "#{name}", :urls => ["#{urls[0]}", "#{urls[1]}", "#{urls[2]}"] } } } }
+end
+
+# create two sets in the Rack::Test MockSession
+def define_sets_in_session(name1, name2)
+	get '/', {}, { 'rack.session' => { "sets" => { "#{name1}" => {:name => "#{name1}", :urls => ["a", "b", "c"] }, "#{name2}" => {:name => "#{name2}", :urls => ["a", "b", "c"] } } } }
 end
