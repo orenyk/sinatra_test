@@ -2,7 +2,7 @@
 <form action="/sets/<%= @name %>" method="put">
 	<label for="name">Set Name:</label>
 	<input type="text" name="name" id="name" value="<%= @name %>">
-	<label for "urls">URLs:</label>
-	<input type="text" name="urls" id="urls" value="<%= @urls.join(', ') %>">
+	<label for "vidnums">Video #s:</label>
+	<input type="text" name="vidnums" id="vidnums" value="<%= @vidnums.join(', ') %>">
 	<input type="submit" name="submit" id="submit" value="Update">
 </form>

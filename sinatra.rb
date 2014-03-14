@@ -17,14 +17,14 @@ helpers do
 	# extract set parameters from form
 	def extract_set_params()
 		@name = params[:name]
-		@urls = params[:urls].split(',').map(&:strip)
-		[@name, @urls]
+		@vidnums = params[:vidnums].split(',').map(&:strip)
+		[@name, @vidnums]
 	end
 
 	# write set to session
-	def write_set(name, urls)
+	def write_set(name, vidnums)
 		@sets = session[:sets] ? session[:sets] : {}
-		@sets[name] = { name: name, urls: @urls }
+		@sets[name] = { name: name, vidnums: @vidnums }
 		session[:sets] = @sets
 	end
 
@@ -59,16 +59,16 @@ end
 
 # create a set
 post '/sets/new' do
-	@name, @urls = extract_set_params()
+	@name, @vidnums = extract_set_params()
 	# if invalid parameters
-	if @name.empty? or @urls == []
+	if @name.empty? or @vidnums == []
 		@error = 'invalid parameters'
 		erb :application do
 			erb :new
 		end
 	else
 		# write set
-		@sets = write_set(@name, @urls)
+		@sets = write_set(@name, @vidnums)
 		erb :application do
 			@set = @sets[@name]
 			erb :show
@@ -82,7 +82,7 @@ get '/sets/:name/edit/?' do
 	@set = extract_set(@name)
 	erb :application do
 		if @set
-			@urls = @set[:urls]
+			@vidnums = @set[:vidnums]
 			erb :edit
 		else
 			erb :new
@@ -96,22 +96,22 @@ put '/sets/:oldname/?' do
 	@set = extract_set(@oldname)
 	# if set exists
 	if @set
-		@name, @urls = extract_set_params()
+		@name, @vidnums = extract_set_params()
 		# if invalid parameters
-		if @name.empty? or @urls == []
+		if @name.empty? or @vidnums == []
 			@error = 'invalid parameters'
 			@name = @oldname
-			@urls = @set[:urls]
+			@vidnums = @set[:vidnums]
 			erb :application do
 				erb :edit
 			end
 		else
 			# if no name change
 			if @name == @oldname
-				write_set(@name, @urls)
+				write_set(@name, @vidnums)
 			# with name change
 			else
-				write_set(@name, @urls)
+				write_set(@name, @vidnums)
 				remove_set(@oldname)
 			end
 			@set = @sets[@name]

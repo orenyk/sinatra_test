@@ -45,18 +45,18 @@ describe 'site pages' do
 
 		context 'with valid information' do
 			before do
-				fill_in 'name', with: 'fizzbuzz'
-				fill_in 'urls', with: 'foo, bar, buzz'
+				fill_in 'name', with: 'pants'
+				fill_in 'vidnums', with: 'foo, bar, buzz'
 			end
 			it 'should save' do
 				click_button 'Create'
-				subject.should have_selector('h1', text: 'fizzbuz')
-				subject.should have_link('Edit', href: '/sets/fizzbuzz/edit')
+				subject.should have_selector('h1', text: 'pants')
+				subject.should have_link('Edit', href: '/sets/pants/edit')
 			end
 		end
 
 		context 'with no set name' do
-			before { fill_in 'urls', with: 'foobar' }
+			before { fill_in 'vidnums', with: 'foobar' }
 			it 'should not save' do
 				click_button 'Create'
 				subject.should have_selector('h1', text: 'Create New Set')
@@ -80,17 +80,17 @@ describe 'site pages' do
 		let(:session) { last_request.env['rack.session'] }
 		context 'with valid parameters' do
 			before do
-				post '/sets/new', { name: 'fizzbuzz', urls: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: 'fizzbuzz', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
 			end
 			it 'should update the session' do
 				get '/sets'
-				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['one', 'two', 'three'] } })
+				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', vidnums: ['one', 'two', 'three'] } })
 			end
 		end
 
 		context 'with invalid name' do
 			before do
-				post '/sets/new', { name: '', urls: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: '', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
 			end
 			it 'should not update the session' do
 				get '/sets'
@@ -98,9 +98,9 @@ describe 'site pages' do
 			end
 		end
 
-		context 'with invalid urls' do
+		context 'with invalid vidnums' do
 			before do
-				post '/sets/new', { name: 'fizzbuzz', urls: '' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: 'fizzbuzz', vidnums: '' }, { 'rack.session' => { sets: { } } }
 			end
 			it 'should not update the session' do
 				get '/sets'
@@ -151,9 +151,9 @@ describe 'site pages' do
 
 			describe 'with valid information' do
 				describe 'with same name' do
-					before { put '/sets/pants', { name: 'pants', urls: 'one, two, three' } }
+					before { put '/sets/pants', { name: 'pants', vidnums: 'one, two, three' } }
 					it 'should update the session' do
-						expect(session[:sets]).to eq({ "pants" => { name: 'pants', urls: ['one', 'two', 'three'] } })
+						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['one', 'two', 'three'] } })
 					end
 					it 'should show the new information' do
 						subject.should have_selector('h1', text: 'pants')
@@ -163,9 +163,9 @@ describe 'site pages' do
 				end
 
 				describe 'with different name' do
-					before { put '/sets/pants', { name: 'fizzbuzz', urls: 'one, two, three' } }
+					before { put '/sets/pants', { name: 'fizzbuzz', vidnums: 'one, two, three' } }
 					it 'should update the session' do
-						expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['one', 'two', 'three'] } })
+						expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', vidnums: ['one', 'two', 'three'] } })
 					end
 					it 'should show the new information' do
 						subject.should have_selector('h1', text: 'fizzbuzz')
@@ -175,9 +175,9 @@ describe 'site pages' do
 			end
 			describe 'with invalid information' do
 				describe 'with invalid name' do
-					before { put '/sets/pants', { name: '', urls: 'one, two, three' } }
+					before { put '/sets/pants', { name: '', vidnums: 'one, two, three' } }
 					it 'should not update the session' do
-						expect(session[:sets]).to eq({ "pants" => { name: 'pants', urls: ['a', 'b', 'c'] } })
+						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['a', 'b', 'c'] } })
 					end
 					it 'should show the old information with error' do
 						subject.should have_selector('h1', text: 'Edit pants')
@@ -186,10 +186,10 @@ describe 'site pages' do
 						subject.should have_selector("input[value='a, b, c']")
 					end
 
-					describe 'with invalid urls' do
-						before { put '/sets/pants', { name: 'pants', urls: '' } }
+					describe 'with invalid vidnums' do
+						before { put '/sets/pants', { name: 'pants', vidnums: '' } }
 						it 'should not update the session' do
-							expect(session[:sets]).to eq({ "pants" => { name: 'pants', urls: ['a', 'b', 'c'] } })
+							expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['a', 'b', 'c'] } })
 						end
 						it 'should show the old information with error' do
 							subject.should have_selector('h1', text: 'Edit pants')
@@ -256,7 +256,7 @@ describe 'site pages' do
 				delete '/sets/pants'
 			end
 			it 'modifies the session' do
-				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['a', 'b', 'c'] } })
+				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', vidnums: ['a', 'b', 'c'] } })
 			end
 			it_behaves_like 'all pages'
 			it 'displays the sets index' do
@@ -284,11 +284,11 @@ end
 # helpers
 
 # create a set in the Rack::Test MockSession
-def define_set_in_session(name, urls=['a','b','c'])
-	get '/', {}, { 'rack.session' => { "sets" => { "#{name}" => {:name => "#{name}", :urls => ["#{urls[0]}", "#{urls[1]}", "#{urls[2]}"] } } } }
+def define_set_in_session(name, vidnums=['a','b','c'])
+	get '/', {}, { 'rack.session' => { "sets" => { "#{name}" => { :name => "#{name}", :vidnums => ["#{vidnums[0]}", "#{vidnums[1]}", "#{vidnums[2]}"] } } } }
 end
 
 # create two sets in the Rack::Test MockSession
 def define_sets_in_session(name1, name2)
-	get '/', {}, { 'rack.session' => { "sets" => { "#{name1}" => {:name => "#{name1}", :urls => ["a", "b", "c"] }, "#{name2}" => {:name => "#{name2}", :urls => ["a", "b", "c"] } } } }
+	get '/', {}, { 'rack.session' => { "sets" => { "#{name1}" => { :name => "#{name1}", :vidnums => ["a", "b", "c"] }, "#{name2}" => { :name => "#{name2}", :vidnums => ["a", "b", "c"] } } } }
 end
