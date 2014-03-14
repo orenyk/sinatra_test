@@ -1,0 +1,6 @@
+<h1>Delete <%= @name %>?</h1>
+<form action="/sets/<%= @name %>" method="post">
+	<input type="hidden" name="_method" value="delete">
+	<label for="submit">Are you sure?</label>
+	<input type="submit" name="submit" id="submit" value="Delete">
+</form>

@@ -219,12 +219,41 @@ describe 'site pages' do
 		end
 	end
 
-	describe 'Delete set link', type: :feature do
-		let(:session) { last_request.env['rack.session'] }
+	# test the delete page
+	describe 'Delete page', type: :feature do
 		context 'with existing set' do
 			before do
 				define_sets_in_session('fizzbuzz', 'pants')
 				get '/sets/pants/delete'
+			end
+			it_behaves_like 'all pages'
+			it 'displays the delete page' do
+				subject.should have_selector('h1', 'Delete pants')
+				subject.should have_selector("input[value='Delete']")
+			end
+		end
+
+		context 'without existing sets' do
+			before do
+				define_set_in_session('fizzbuzz')
+				get '/sets/pants/delete'
+			end
+			it_behaves_like 'all pages'
+			it 'displays the sets index with error' do
+				subject.should have_selector("span[class='error']", text: 'invalid set')
+				subject.should have_selector('h1', text: 'Sets')
+				subject.should have_content('fizzbuzz')
+			end
+		end
+	end
+
+	# test the #destroy action
+	describe 'Destroy method', type: :feature do
+		let(:session) { last_request.env['rack.session'] }
+		context 'with existing set' do
+			before do
+				define_sets_in_session('fizzbuzz', 'pants')
+				delete '/sets/pants'
 			end
 			it 'modifies the session' do
 				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', urls: ['a', 'b', 'c'] } })
@@ -240,7 +269,7 @@ describe 'site pages' do
 		context 'without existing sets' do
 			before do
 				define_set_in_session('fizzbuzz')
-				get '/sets/pants/delete'
+				delete '/sets/pants'
 			end
 			it_behaves_like 'all pages'
 			it 'displays the sets index with error' do

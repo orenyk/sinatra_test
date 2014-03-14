@@ -116,8 +116,24 @@ put '/sets/:oldname/?' do
 	end
 end
 
-# delete sets - currently use GET since I'm not sure how to fake a DELETE request
+# delete sets - display the delete form if set exists
 get '/sets/:name/delete/?' do
+	@name = params[:name]
+	@set = extract_set(@name)
+	if @set
+		erb :application do
+			erb :delete
+		end
+	else
+		@sets = session[:sets]
+		@error = 'invalid set'
+		erb :application do
+			erb :index
+		end
+	end
+end
+
+delete '/sets/:name/?' do
 	@name = params[:name]
 	@set = extract_set(@name)
 	if @set
