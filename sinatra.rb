@@ -170,8 +170,21 @@ delete '/sets/:name/?' do
 	end
 end
 
-# play set - TODO
+# play set
 get '/sets/:name/play/?' do
+	@name = params[:name]
+	@set = extract_set(@name)
+	# if set exists
+	if @set
+		@vidnum = randomvideo(@set[:vidnums])
+		embedyoutube(@vidnum)
+	# if set doesn't exist
+	else
+		@error = 'invalid set'
+		erb :application do
+			erb :new
+		end
+	end
 end
 
 # new and show sets with the same path?

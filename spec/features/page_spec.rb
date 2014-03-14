@@ -206,17 +206,26 @@ describe 'site pages' do
 		context 'without existing set' do
 			before { put '/sets/pants' }
 			it_behaves_like 'all pages'
-			it_behaves_like 'new page'
+			it_behaves_like 'new page with error'
 		end
 	end
 
 	describe 'Play set page', type: :feature do
 		context 'with existing set' do
-			pending 'tests for play page'
-			pending 'tests for video embed?'
+			before do
+				define_set_in_session('pants', ['X3AJcgfopdk', 'X3AJcgfopdk', 'X3AJcgfopdk'])
+				get '/sets/pants/play'
+			end
+			it 'plays a video' do
+				subject.should have_selector("param[name='movie']")
+				subject.should have_selector("embed[type='application/x-shockwave-flash']")
+				subject.should have_selector("embed[src='http://www.youtube.com/v/X3AJcgfopdk&autoplay=1']")
+			end
 		end
 		context 'without existing set' do
-			pending 'tests for new page'
+			before { get '/sets/pants/play' }
+			it_behaves_like 'all pages'
+			it_behaves_like 'new page with error'
 		end
 	end
 
