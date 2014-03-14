@@ -201,6 +201,7 @@ describe 'site pages' do
 				end
 			end
 		end
+
 		context 'without existing set' do
 			before { put '/sets/pants' }
 			it_behaves_like 'all pages'
