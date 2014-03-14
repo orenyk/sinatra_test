@@ -54,7 +54,7 @@ describe 'site pages' do
 			before { fill_in 'urls', with: 'foobar' }
 			it 'should not save' do
 				click_button 'Create'
-				subject.should have_no_content('foobar')
+				subject.should have_selector('h1', text: 'Create New Set')
 				subject.should have_selector("span[class='error']", text: 'invalid parameters')
 			end
 		end
@@ -63,13 +63,13 @@ describe 'site pages' do
 			before { fill_in 'name', with: 'buzzbar' }
 			it 'should not save' do
 				click_button 'Create'
-				subject.should have_no_content('buzzbar')
+				subject.should have_selector('h1', text: 'Create New Set')
 				subject.should have_selector("span[class='error']", text: 'invalid parameters')
 			end
 		end
 	end
 
-	# Using Rack::Test
+	# USING RACK::TEST
 	# now we can test whether or not the session is modified with the form
 	describe 'Create method', type: :feature do
 		let(:session) { last_request.env['rack.session'] }
