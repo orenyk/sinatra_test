@@ -198,7 +198,7 @@ get '/sets/:name/?' do
 			erb :show
 		end
 	else
-		@error = 'invalid set'
+		@error = 'invalid set' unless params[:name] == "new"
 		erb :application do
 			erb :new
 		end

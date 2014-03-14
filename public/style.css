@@ -58,6 +58,19 @@
 	color: black;
 }
 
+.new_set_btn a {
+	text-decoration: none;
+	color: black;
+}
+
+.new_set_btn a:visited {
+	color: black;
+}
+
+.new_set_btn a:hover {
+	color: gray;
+}
+
 /* /sets/:name */
 .set_actions {
 	padding-left: 0;
@@ -79,4 +92,13 @@
 
 .set_actions a:hover {
 	color: black;
+}
+
+.set_name {
+	width: 50px;
+}
+
+.vidnums {
+	width: 600px;
+	text-align: center;
 }
