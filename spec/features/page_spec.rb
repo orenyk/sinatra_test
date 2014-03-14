@@ -146,6 +146,8 @@ describe 'site pages' do
 
 			it_behaves_like 'all pages'
 			it { should have_selector('h1', text: 'Edit pants') }
+			it { should have_selector("input[value='pants']") }
+			it { should have_selector("input[value='a, b, c']") }
 
 			describe 'with valid information' do
 				describe 'with same name' do
