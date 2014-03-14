@@ -30,10 +30,13 @@ describe 'site pages' do
 		end
 	end
 
+	# USING CAPYBARA
+	# not ideal because this means we can't use redirects and we're not actually testing that the session changes...
 	describe 'New set page', type: :feature do
 		subject { page }
 		before { visit '/sets/new' }
 		it_behaves_like 'all pages'
+		it { should have_selector('h1', text: 'Create New Set')}
 
 		context 'with valid information' do
 			before do
@@ -61,6 +64,7 @@ describe 'site pages' do
 			it 'should not save' do
 				click_button 'Create'
 				subject.should have_no_content('buzzbar')
+				subject.should have_selector("span[class='error']", text: 'invalid parameters')
 			end
 		end
 	end

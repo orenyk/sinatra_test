@@ -52,7 +52,6 @@ post '/sets/new' do
 	else
 		# write set
 		@sets = write_set(@name, @urls)
-		# redirect("/sets/@name")
 		erb :application do
 			@set = @sets[@name]
 			erb :show
@@ -91,7 +90,10 @@ put '/sets/:oldname/?' do
 			write_set(@name, @urls)
 			remove_set(@oldname)
 		end
-		redirect("/sets/#{@name}")
+		erb :application do
+			@set = @sets[@name]
+			erb :show
+		end
 	end
 end
 
