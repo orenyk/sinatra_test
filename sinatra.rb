@@ -80,12 +80,14 @@ end
 get '/sets/:name/edit/?' do
 	@name = params[:name]
 	@set = extract_set(@name)
-	erb :application do
-		if @set
-			@vidnums = @set[:vidnums]
+	if @set
+		@vidnums = @set[:vidnums]
+		erb :application do
 			erb :edit
-		else
-			@error = 'invalid set'
+		end
+	else
+		@error = 'invalid set'
+		erb :application do
 			erb :new
 		end
 	end
@@ -141,7 +143,7 @@ get '/sets/:name/delete/?' do
 		end
 	# if set doesn't exist
 	else
-		@sets = session[:sets]
+		@sets = session[:sets] ? session[:sets] : {}
 		@error = 'invalid set'
 		erb :application do
 			erb :index
@@ -191,10 +193,13 @@ end
 get '/sets/:name/?' do
 	@name = params[:name] == "new" ? "" : params[:name]
 	@set = extract_set(@name)
-	erb :application do
-		if @set
+	if @set
+		erb :application do
 			erb :show
-		else
+		end
+	else
+		@error = 'invalid set'
+		erb :application do
 			erb :new
 		end
 	end

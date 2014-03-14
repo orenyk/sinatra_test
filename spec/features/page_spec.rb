@@ -1,6 +1,6 @@
 require_relative '../spec_helper'
 
-describe 'site pages' do
+describe 'Sinatra test' do
 
 	subject { last_response.body }
 
@@ -12,16 +12,20 @@ describe 'site pages' do
 	shared_examples_for 'new page with error' do
 		it { should have_selector('h1', text: 'Create New Set') }
 		it { should have_selector("input[value='pants']") }
-		it { should have_selector("span[class='error']") }
+		it { should have_selector("span[class='error']", text: 'invalid set') }
 	end
 
-	describe 'Home page', type: :feature do
+	describe 'home page', type: :feature do
+
 		before { get '/' }
+
 		it_behaves_like 'all pages'
 	end
 
-	describe 'Sets page', type: :feature do
+	describe 'sets page', type: :feature do
+
 		before { get '/sets' }
+
 		it_behaves_like 'all pages'
 		it { should have_selector('h1', text: 'Sets') }
 
@@ -38,9 +42,11 @@ describe 'site pages' do
 
 	# USING CAPYBARA
 	# not ideal because this means we can't use redirects and we're not actually testing that the session changes...
-	describe 'New set page', type: :feature do
+	describe 'new set page', type: :feature do
+
 		subject { page }
 		before { visit '/sets/new' }
+
 		it_behaves_like 'all pages'
 		it { should have_selector('h1', text: 'Create New Set')}
 
@@ -57,7 +63,7 @@ describe 'site pages' do
 		end
 
 		context 'with no set name' do
-			before { fill_in 'vidnums', with: 'foobar' }
+			before { fill_in 'vidnums', with: 'foo, bar, buzz' }
 			it 'should not save' do
 				click_button 'Create'
 				subject.should have_selector('h1', text: 'Create New Set')
@@ -77,15 +83,17 @@ describe 'site pages' do
 
 	# USING RACK::TEST
 	# now we can test whether or not the session is modified with the form
-	describe 'Create method', type: :feature do
+	describe '#create method', type: :feature do
+
 		let(:session) { last_request.env['rack.session'] }
+
 		context 'with valid parameters' do
 			before do
-				post '/sets/new', { name: 'fizzbuzz', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: 'pants', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
 			end
 			it 'should update the session' do
 				get '/sets'
-				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', vidnums: ['one', 'two', 'three'] } })
+				expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['one', 'two', 'three'] } })
 			end
 		end
 
@@ -101,7 +109,7 @@ describe 'site pages' do
 
 		context 'with invalid vidnums' do
 			before do
-				post '/sets/new', { name: 'fizzbuzz', vidnums: '' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: 'pants', vidnums: '' }, { 'rack.session' => { sets: { } } }
 			end
 			it 'should not update the session' do
 				get '/sets'
@@ -111,7 +119,7 @@ describe 'site pages' do
 	end
 
 
-	describe 'Show set page', type: :feature do
+	describe 'show set page', type: :feature do
 		context 'with existing set' do
 			before do
 				define_set_in_session('pants')
@@ -131,14 +139,14 @@ describe 'site pages' do
 		context 'without existing set' do
 			before { get '/sets/pants' }
 			it_behaves_like 'all pages'
-			it_behaves_like 'new page'
+			it_behaves_like 'new page with error'
 		end
 	end
 
 	# USING RACK::TEST
 	# we can only test the existence of the edit page for an existing set; however, since we can't access the session using Capybara, we can't run through the edit set form since there will be no existing sets
-	describe 'Edit set page', type: :feature do
-		let(:session) { last_request.env['rack.session'] }
+	describe 'edit set page', type: :feature do
+
 		context 'with existing set' do
 			before do
 				define_set_in_session('pants')
@@ -149,6 +157,21 @@ describe 'site pages' do
 			it { should have_selector('h1', text: 'Edit pants') }
 			it { should have_selector("input[value='pants']") }
 			it { should have_selector("input[value='a, b, c']") }
+		end
+
+		context 'without existing set' do
+			before { get '/sets/pants/edit' }
+			it_behaves_like 'all pages'
+			it_behaves_like 'new page with error'
+		end
+	end
+
+	describe '#update method', type: :feature do
+
+		let(:session) { last_request.env['rack.session'] }
+
+		context 'with existing set' do
+			before { define_set_in_session('pants') }
 
 			describe 'with valid information' do
 				describe 'with same name' do
@@ -172,9 +195,15 @@ describe 'site pages' do
 						subject.should have_selector('h1', text: 'fizzbuzz')
 						subject.should have_selector('td', text: '["one", "two", "three"]')
 					end
+					describe 'should not keep the old path' do
+						before { get '/sets/pants' }
+						it_behaves_like 'new page with error'
+					end
 				end
 			end
+
 			describe 'with invalid information' do
+
 				describe 'with invalid name' do
 					before { put '/sets/pants', { name: '', vidnums: 'one, two, three' } }
 					it 'should not update the session' do
@@ -210,7 +239,8 @@ describe 'site pages' do
 		end
 	end
 
-	describe 'Play set page', type: :feature do
+	describe 'play set page', type: :feature do
+
 		context 'with existing set' do
 			before do
 				define_set_in_session('pants', ['X3AJcgfopdk', 'X3AJcgfopdk', 'X3AJcgfopdk'])
@@ -222,6 +252,7 @@ describe 'site pages' do
 				subject.should have_selector("embed[src='http://www.youtube.com/v/X3AJcgfopdk&autoplay=1']")
 			end
 		end
+
 		context 'without existing set' do
 			before { get '/sets/pants/play' }
 			it_behaves_like 'all pages'
@@ -230,10 +261,11 @@ describe 'site pages' do
 	end
 
 	# test the delete page
-	describe 'Delete page', type: :feature do
+	describe 'delete page', type: :feature do
+
 		context 'with existing set' do
 			before do
-				define_sets_in_session('fizzbuzz', 'pants')
+				define_sets_in_session('pants', 'fizzbuzz')
 				get '/sets/pants/delete'
 			end
 			it_behaves_like 'all pages'
@@ -245,24 +277,24 @@ describe 'site pages' do
 
 		context 'without existing sets' do
 			before do
-				define_set_in_session('fizzbuzz')
 				get '/sets/pants/delete'
 			end
 			it_behaves_like 'all pages'
 			it 'displays the sets index with error' do
 				subject.should have_selector("span[class='error']", text: 'invalid set')
 				subject.should have_selector('h1', text: 'Sets')
-				subject.should have_content('fizzbuzz')
 			end
 		end
 	end
 
 	# test the #destroy action
-	describe 'Destroy method', type: :feature do
+	describe '#destroy method', type: :feature do
+
 		let(:session) { last_request.env['rack.session'] }
+
 		context 'with existing set' do
 			before do
-				define_sets_in_session('fizzbuzz', 'pants')
+				define_sets_in_session('pants', 'fizzbuzz')
 				delete '/sets/pants'
 			end
 			it 'modifies the session' do
@@ -278,14 +310,12 @@ describe 'site pages' do
 
 		context 'without existing sets' do
 			before do
-				define_set_in_session('fizzbuzz')
 				delete '/sets/pants'
 			end
 			it_behaves_like 'all pages'
 			it 'displays the sets index with error' do
 				subject.should have_selector("span[class='error']", text: 'invalid set')
 				subject.should have_selector('h1', text: 'Sets')
-				subject.should have_content('fizzbuzz')
 			end
 		end
 	end
