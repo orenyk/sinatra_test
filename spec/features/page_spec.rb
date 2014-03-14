@@ -9,9 +9,10 @@ describe 'site pages' do
 		it { should have_link('Sets', href: '/sets') }
 	end
 
-	shared_examples_for 'new page' do
+	shared_examples_for 'new page with error' do
 		it { should have_selector('h1', text: 'Create New Set') }
 		it { should have_selector("input[value='pants']") }
+		it { should have_selector("span[class='error']") }
 	end
 
 	describe 'Home page', type: :feature do

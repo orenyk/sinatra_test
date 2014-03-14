@@ -85,6 +85,7 @@ get '/sets/:name/edit/?' do
 			@vidnums = @set[:vidnums]
 			erb :edit
 		else
+			@error = 'invalid set'
 			erb :new
 		end
 	end
@@ -122,6 +123,7 @@ put '/sets/:oldname/?' do
 	# if set doesn't exist
 	else
 		@name = @oldname
+		@error = 'invalid set'
 		erb :application do
 			erb :new
 		end
@@ -132,10 +134,12 @@ end
 get '/sets/:name/delete/?' do
 	@name = params[:name]
 	@set = extract_set(@name)
+	# if set exists
 	if @set
 		erb :application do
 			erb :delete
 		end
+	# if set doesn't exist
 	else
 		@sets = session[:sets]
 		@error = 'invalid set'
@@ -145,17 +149,20 @@ get '/sets/:name/delete/?' do
 	end
 end
 
+# destroy set
 delete '/sets/:name/?' do
 	@name = params[:name]
 	@set = extract_set(@name)
+	# if set exists
 	if @set
 		remove_set(@name)
 		@sets = session[:sets]
 		erb :application do
 			erb :index
 		end
+	# if set doesn't exist
 	else
-		@sets = session[:sets]
+		@sets = session[:sets] ? session[:sets] : {}
 		@error = 'invalid set'
 		erb :application do
 			erb :index
@@ -167,7 +174,7 @@ end
 get '/sets/:name/play/?' do
 end
 
-# create and view sets with the same path?
+# new and show sets with the same path?
 get '/sets/:name/?' do
 	@name = params[:name] == "new" ? "" : params[:name]
 	@set = extract_set(@name)
