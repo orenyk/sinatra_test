@@ -24,12 +24,17 @@ helpers do
 	# write set to session
 	def write_set(name, urls)
 		@sets = session[:sets] ? session[:sets] : {}
-		@sets[@name] = { name: @name, urls: @urls }
+		@sets[name] = { name: name, urls: @urls }
 		session[:sets] = @sets
 	end
 
 	# remove set from session
 	def remove_set(name)
+		@sets = session[:sets]
+		if @sets
+			@sets.delete(name)
+			session[:sets] = @sets
+		end
 	end
 end
 
