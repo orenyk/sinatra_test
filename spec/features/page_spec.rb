@@ -9,6 +9,11 @@ describe 'site pages' do
 		it { should have_link('Sets', href: '/sets') }
 	end
 
+	shared_examples_for 'new page' do
+		it { should have_selector('h1', text: 'Create New Set') }
+		it { should have_selector("input[value='pants']") }
+	end
+
 	describe 'Home page', type: :feature do
 		before { get '/' }
 		it_behaves_like 'all pages'
@@ -125,12 +130,7 @@ describe 'site pages' do
 		context 'without existing set' do
 			before { get '/sets/pants' }
 			it_behaves_like 'all pages'
-			it 'should redirect to the new set page' do
-				subject.should have_selector('h1', text: 'Create New Set')
-			end
-			it 'should have the set name filled in' do
-				subject.should have_selector("input[value='pants']")
-			end
+			it_behaves_like 'new page'
 		end
 	end
 
@@ -204,12 +204,7 @@ describe 'site pages' do
 		context 'without existing set' do
 			before { put '/sets/pants' }
 			it_behaves_like 'all pages'
-			it 'should redirect to the new set page' do
-				subject.should have_selector('h1', text: 'Create New Set')
-			end
-			it 'should have the set name filled in' do
-				subject.should have_selector("input[value='pants']")
-			end
+			it_behaves_like 'new page'
 		end
 	end
 
@@ -223,7 +218,7 @@ describe 'site pages' do
 		end
 	end
 
-	describe 'Delete set link' do
+	describe 'Delete set link', type: :feature do
 		context 'with existing set' do
 			pending 'test for deletion'
 			pending 'test for redirection to sets page'
