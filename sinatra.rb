@@ -61,6 +61,8 @@ end
 post '/sets/new' do
 	@name, @vidnums = extract_set_params()
 	# if invalid parameters
+	# TODO - define a validator for YouTube video numbers vs accepting all strings
+	# also TODO - validate name to see if it already exists to prevent us from overwriting current sets
 	if @name.empty? or @vidnums == []
 		@error = 'invalid parameters'
 		erb :application do

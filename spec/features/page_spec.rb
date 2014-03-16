@@ -57,84 +57,125 @@ describe 'Sinatra test' do
 		end
 	end
 
-	# USING CAPYBARA
+	# USING CAPYBARA - more user-focused integration testing
 	# not ideal because this means we can't use redirects and we're not actually testing that the session changes...
 	describe 'new set page', type: :feature do
 
+		# change the subject in this block to the Capybara page object
 		subject { page }
+		# visit the page at '/sets/new'
 		before { visit '/sets/new' }
 
+		# check for template stuff
 		it_behaves_like 'all pages'
+		# check for title
 		it { should have_selector('h1', text: 'Create New Set')}
 
+		# first, if we have valid information in the form
 		context 'with valid information' do
+			# first, fill in the form with both name and a comma-separated list
 			before do
+				# fill in the text input named 'name' with 'pants'
 				fill_in 'name', with: 'pants'
+				# fill in the text input named 'vidnums' with 'foo, bar, buzz'
 				fill_in 'vidnums', with: 'foo, bar, buzz'
 			end
+			# check the that the set page renders implying that we went through the right steps
 			it 'should save' do
+				# click on the button named 'Create'
 				click_button 'Create'
+				# check for title with set name
 				subject.should have_selector('h1', text: 'pants')
+				# check for td selector with vidnum array
+				subject.should have_selector('td', text: '["foo", "bar", "baz"]')
+				# check for link to edit page with valid target
 				subject.should have_link('Edit', href: '/sets/pants/edit')
 			end
 		end
 
+		# check to make sure that leaving the set name blank will fail
 		context 'with no set name' do
+			# first, just fill in the vidnums filed
 			before { fill_in 'vidnums', with: 'foo, bar, buzz' }
+			# check that it does not save by looking for the new page header and an error message
 			it 'should not save' do
+				# click on the button named 'Create'
 				click_button 'Create'
+				# check that the page has the new page header
 				subject.should have_selector('h1', text: 'Create New Set')
+				# check that the page has the error element with the appropriate test (can be modified for different error behavior)
 				subject.should have_selector("span[class='error']", text: 'invalid parameters')
 			end
 		end
 
+		# check to make sure that leaving the vidnums field blank will fail
 		context 'with no links' do
-			before { fill_in 'name', with: 'buzzbar' }
+			# first, just fill in the name field
+			before { fill_in 'name', with: 'pants' }
+			# check that it does not save by looking for the new page header and an error message
 			it 'should not save' do
+				# click on the button named 'Create'
 				click_button 'Create'
+				# check that the page has the new page header
 				subject.should have_selector('h1', text: 'Create New Set')
+				# check that the page has the error element with the appropriate test
 				subject.should have_selector("span[class='error']", text: 'invalid parameters')
 			end
 		end
 	end
 
 	# USING RACK::TEST
-	# now we can test whether or not the session is modified with the form
+	# now we can test whether or not the session is modified with the form by testing the Rack server directly
 	describe '#create method', type: :feature do
 
+		# define a variable for this block representing the Rack::Test session
 		let(:session) { last_request.env['rack.session'] }
 
+		# first, check for valid submission parameters
 		context 'with valid parameters' do
+			# issue a POST request to '/sets/new' with a valid params hash and an initially empty session
 			before do
 				post '/sets/new', { name: 'pants', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
 			end
+			# check that the session updates by testing it against the expected session
 			it 'should update the session' do
+				# we issue a GET request to '/sets' to update last_request
 				get '/sets'
+				# check that the current session equals the expected session
 				expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['one', 'two', 'three'] } })
 			end
 		end
 
+		# check for an invalid name in the params hash
 		context 'with invalid name' do
+			# issue a POST request to '/sets/new' with an invalid params hash (empty name) and an initially empty session
 			before do
 				post '/sets/new', { name: '', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
 			end
+			# check that the session isn't updated by asserting that it remains empty after a subsequent request
 			it 'should not update the session' do
+				# issue a GET request to '/sets/new' to update last_request
 				get '/sets'
+				# check that the current session remains empty
 				expect(session[:sets]).to eq({ })
 			end
 		end
 
+		# check for an invalid vidnums in the params hash
 		context 'with invalid vidnums' do
+			# issue a POST request to '/sets/new' with an invalid params hash (empty vidnums) and an initially empty session
 			before do
 				post '/sets/new', { name: 'pants', vidnums: '' }, { 'rack.session' => { sets: { } } }
 			end
+			# check that the session isn't updated by asserting that it remains empty after a subsequent request
 			it 'should not update the session' do
+				# issue a GET request to '/sets/new' to update last_request
 				get '/sets'
+				# check that the current session remains empty
 				expect(session[:sets]).to eq({ })
 			end
 		end
 	end
-
 
 	describe 'show set page', type: :feature do
 		context 'with existing set' do
