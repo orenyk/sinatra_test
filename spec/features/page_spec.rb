@@ -1,40 +1,57 @@
 require_relative '../spec_helper'
 
+# overall describe block
 describe 'Sinatra test' do
 
+	# set up the tests to use the Rack::Test MockResponse body as the subject of mosts tests
 	subject { last_response.body }
 
+	# general design tests - shared examples for all pages to look for specific template features (in this case, navigation links, but can be designed for arbitrary templates)
 	shared_examples_for 'all pages' do
 		it { should have_link('Home', href: '/') }
 		it { should have_link('Sets', href: '/sets') }
 	end
 
+	# new page with error tests - shared examples for cases where a link was called with an invalid set name so we redirected to the new set page w/ an error message (again, can be modified for specific design / error functionality)
 	shared_examples_for 'new page with error' do
 		it { should have_selector('h1', text: 'Create New Set') }
 		it { should have_selector("input[value='pants']") }
 		it { should have_selector("span[class='error']", text: 'invalid set') }
 	end
 
+	# tests for the home page
 	describe 'home page', type: :feature do
 
+		# before all tests, issue a GET request to '/'
 		before { get '/' }
 
+		# test to make sure it satisfies general template requirements
 		it_behaves_like 'all pages'
+
+		# here we could add more tests for specific home page features
 	end
 
 	describe 'sets page', type: :feature do
 
+		# before all tests, issue a GET request to '/sets'
 		before { get '/sets' }
 
+		# test to make sure it satisfies general template requirements
 		it_behaves_like 'all pages'
+		# look for title selector with specific text
 		it { should have_selector('h1', text: 'Sets') }
 
+		# add a sub-context where we check to make sure it shows existing sets (we're using Rack::Tests for this since we need to modify the session)
 		context 'with existing sets' do
-			# we're using Rack::Tests for this since we need to modify the session
+			# before this block of tests, create a set in the Rack::Test session named 'pants'
 			before { define_set_in_session('pants') }
+			# test that the set is displayed on the page
 			it 'should show the set' do
+				# issue a GET request to '/sets'
 				get '/sets'
-				subject.should have_content 'pants'
+				# check for td selector with the set name in it
+				subject.should have_selector('td', text: 'pants')
+				# check for view link with valid destination
 				subject.should have_link('View', href:'/sets/pants')
 			end
 		end
