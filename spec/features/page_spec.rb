@@ -12,7 +12,7 @@ describe 'Sinatra test' do
 		it { should have_link('Sets', href: '/sets') }
 	end
 
-	# new page with error tests - shared examples for cases where a link was called with an invalid set name so we redirected to the new set page w/ an error message (again, can be modified for specific design / error functionality)
+	# new page with error tests - shared examples for cases where a link was called with an invalid set name so we redirected to the new set page w/ an error message and the invalid name filled in (again, can be modified for specific design / error functionality)
 	shared_examples_for 'new page with error' do
 		it { should have_selector('h1', text: 'Create New Set') }
 		it { should have_selector("input[value='pants']") }
@@ -178,15 +178,20 @@ describe 'Sinatra test' do
 	end
 
 	describe 'show set page', type: :feature do
+		# check that the show set page functions when a set exists
 		context 'with existing set' do
+			# before all tests create a set named 'pants' and issue a GET request to '/sets/pants'
 			before do
 				define_set_in_session('pants')
 				get '/sets/pants'
 			end
+			# check for template features
 			it_behaves_like 'all pages'
-			it 'should display the set information' do
+			# check that the set name is the title
+			it 'should display the set name as a title' do
 				subject.should have_selector('h1', text: 'pants')
 			end
+			# check that all the links exist and have valid targets
 			it 'should have edit, play, and delete links' do
 				subject.should have_link('Edit', href: '/sets/pants/edit')
 				subject.should have_link('Play', href: '/sets/pants/play')
@@ -194,9 +199,13 @@ describe 'Sinatra test' do
 			end
 		end
 
+		# check that the show set page redirects to the new set page with an error and the name field filled in
 		context 'without existing set' do
+			# before, issue a GET request to '/sets/pants' with no existing set
 			before { get '/sets/pants' }
+			# check for template features
 			it_behaves_like 'all pages'
+			# check for new set page with error and name field filled in
 			it_behaves_like 'new page with error'
 		end
 	end
