@@ -77,8 +77,8 @@ describe 'Sinatra test' do
 			before do
 				# fill in the text input named 'name' with 'pants'
 				fill_in 'name', with: 'pants'
-				# fill in the text input named 'vidnums' with 'foo, bar, buzz'
-				fill_in 'vidnums', with: 'foo, bar, buzz'
+				# fill in the text input named 'vidnums' with 'foo, bar, baz'
+				fill_in 'vidnums', with: 'foo, bar, baz'
 			end
 			# check the that the set page renders implying that we went through the right steps
 			it 'should save' do
@@ -135,14 +135,14 @@ describe 'Sinatra test' do
 		context 'with valid parameters' do
 			# issue a POST request to '/sets/new' with a valid params hash and an initially empty session
 			before do
-				post '/sets/new', { name: 'pants', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: 'pants', vidnums: 'foo, bar, baz' }, { 'rack.session' => { sets: { } } }
 			end
 			# check that the session updates by testing it against the expected session
 			it 'should update the session' do
 				# we issue a GET request to '/sets' to update last_request
 				get '/sets'
 				# check that the current session equals the expected session
-				expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['one', 'two', 'three'] } })
+				expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['foo', 'bar', 'baz'] } })
 			end
 		end
 
@@ -150,7 +150,7 @@ describe 'Sinatra test' do
 		context 'with invalid name' do
 			# issue a POST request to '/sets/new' with an invalid params hash (empty name) and an initially empty session
 			before do
-				post '/sets/new', { name: '', vidnums: 'one, two, three' }, { 'rack.session' => { sets: { } } }
+				post '/sets/new', { name: '', vidnums: 'foo, bar, baz' }, { 'rack.session' => { sets: { } } }
 			end
 			# check that the session isn't updated by asserting that it remains empty after a subsequent request
 			it 'should not update the session' do
@@ -214,18 +214,25 @@ describe 'Sinatra test' do
 	# we can only test the existence of the edit page for an existing set; however, since we can't access the session using Capybara, we can't run through the edit set form since there will be no existing sets
 	describe 'edit set page', type: :feature do
 
+		# check that the edit link works when a set exists
 		context 'with existing set' do
+			# before all tests create a set named 'pants' and issue a GET request to '/sets/pants/edit'
 			before do
-				define_set_in_session('pants')
+				define_set_in_session('pants', ['foo', 'bar', 'baz'])
 				get '/sets/pants/edit'
 			end
 
+			# check for template features
 			it_behaves_like 'all pages'
+			# check for valid title
 			it { should have_selector('h1', text: 'Edit pants') }
-			it { should have_selector("input[value='pants']") }
-			it { should have_selector("input[value='a, b, c']") }
+			# check that form has the existing name filled in to an input field with the name 'name'
+			it { should have_selector("input[name='name'][value='pants']") }
+			# check that form has the current video numbers filled in to an input field with the name 'vidnums'
+			it { should have_selector("input[name='vidnums'][value='foo, bar, baz']") }
 		end
 
+		# check that the edit set page redirects to the new set page with an error and the name field filled in (see above)
 		context 'without existing set' do
 			before { get '/sets/pants/edit' }
 			it_behaves_like 'all pages'
@@ -233,19 +240,29 @@ describe 'Sinatra test' do
 		end
 	end
 
+	# test the #update method specifically
 	describe '#update method', type: :feature do
 
+		# define a variable for this block representing the Rack::Test session
 		let(:session) { last_request.env['rack.session'] }
 
+		# check the #update method when the set specified in the PUT target exists
 		context 'with existing set' do
-			before { define_set_in_session('pants') }
 
+			# before each test, define the set in the MockRequest session
+			before { define_set_in_session('pants', ['foo', 'bar', 'baz']) }
+
+			# first, check for valid request parameters
 			describe 'with valid information' do
+				# check the functionality when the name is unchanged
 				describe 'with same name' do
+					# issue a PUT request to '/set/pants' with the same name but different vidnums
 					before { put '/sets/pants', { name: 'pants', vidnums: 'one, two, three' } }
+					# check that the session is updated with the new vidnums
 					it 'should update the session' do
 						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['one', 'two', 'three'] } })
 					end
+					# check that the method brings you back to the show page with the new vidnums displaying correctly
 					it 'should show the new information' do
 						subject.should have_selector('h1', text: 'pants')
 						subject.should have_link('Edit', href: '/sets/pants/edit')
@@ -253,15 +270,21 @@ describe 'Sinatra test' do
 					end
 				end
 
+				# check the functionality when the name is changed
 				describe 'with different name' do
+					# issue a PUT request to '/set/pants' with a different name and different vidnums
 					before { put '/sets/pants', { name: 'fizzbuzz', vidnums: 'one, two, three' } }
+					# check that the session is updated with the new set information and that the old set is deleted from the hash
 					it 'should update the session' do
 						expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', vidnums: ['one', 'two', 'three'] } })
 					end
+					# check that the method brings you back to the show page with the new name and vidnums (also note that we're checking the target of the 'Edit' link for a new path)
 					it 'should show the new information' do
 						subject.should have_selector('h1', text: 'fizzbuzz')
+						subject.should have_link('Edit', href: '/sets/fizzbuzz/edit')
 						subject.should have_selector('td', text: '["one", "two", "three"]')
 					end
+					# check that issuing a GET request to the old show page redirects you to the new set page w/ an error
 					describe 'should not keep the old path' do
 						before { get '/sets/pants' }
 						it_behaves_like 'new page with error'
@@ -274,25 +297,25 @@ describe 'Sinatra test' do
 				describe 'with invalid name' do
 					before { put '/sets/pants', { name: '', vidnums: 'one, two, three' } }
 					it 'should not update the session' do
-						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['a', 'b', 'c'] } })
+						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['foo', 'bar', 'baz'] } })
 					end
 					it 'should show the old information with error' do
 						subject.should have_selector('h1', text: 'Edit pants')
 						subject.should have_selector("span[class='error']", text: 'invalid parameters')
 						subject.should have_selector("input[value='pants']")
-						subject.should have_selector("input[value='a, b, c']")
+						subject.should have_selector("input[value='foo, bar, baz']")
 					end
 
 					describe 'with invalid vidnums' do
 						before { put '/sets/pants', { name: 'pants', vidnums: '' } }
 						it 'should not update the session' do
-							expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['a', 'b', 'c'] } })
+							expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['foo', 'bar', 'baz'] } })
 						end
 						it 'should show the old information with error' do
 							subject.should have_selector('h1', text: 'Edit pants')
 							subject.should have_selector("span[class='error']", text: 'invalid parameters')
 							subject.should have_selector("input[value='pants']")
-							subject.should have_selector("input[value='a, b, c']")
+							subject.should have_selector("input[value='foo, bar, baz']")
 						end
 					end
 				end
