@@ -239,17 +239,7 @@ get '/session/clear' do
 	redirect to('/session')
 end
 
-
-# FOR LATER?
-# # can we get all the methods in one route?
+# CHALLENGE: try to write all of the GET methods in a single route, e.g.
 # get '/sets/?:name?/?:method?/?' do
-# 	@sets = session[:sets] ? session[:sets] : {}
-# 	@name = params[:name]
-# 	if @name.empty?
-# 		@method = 'index'
-# 	else
-# 		@set = @sets ? @sets[@name] : nil
-# 		@method = params[:method]
-# 		if @method.empty?
-# 			@method = 'show'
-# 		end
+# we can extract the optional :name and :method parameters from the URL
+# then just use logic to direct our controller
