@@ -1,5 +1,6 @@
 <h1>Edit <%= @name %></h1>
-<form action="/sets/<%= @name %>" method="put">
+<form action="/sets/<%= @name %>" method="post">
+	<input type="hidden" name="_method" value="put">
 	<label for="name">Set Name:</label>
 	<input type="text" name="name" id="name" value="<%= @name %>">
 	<label for "vidnums">Video #s:</label>
