@@ -36,6 +36,11 @@
 	padding-right: 10px;
 }
 
+#clear_session {
+	font-size: 0.8em;
+	color: red;
+}
+
 /* Content */
 .content {
 	margin: 0 auto;
