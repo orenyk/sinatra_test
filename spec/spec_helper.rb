@@ -34,13 +34,7 @@ Capybara.register_driver :rack_test do |app|
   Capybara::RackTest::Driver.new(app, :headers =>  { 'User-Agent' => 'Capybara' })
 end
 
-
-# will this let us post stuff?
+# lets us use the Rack::Test MockRequests
 def app
 	Sinatra::Application.new
 end
-
-# # will this let us test session stuff?
-# def session
-#   last_request.env['rack.session']
-# end
