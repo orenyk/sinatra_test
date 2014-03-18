@@ -252,7 +252,7 @@ describe 'Sinatra test' do
 			# before each test, define the set in the MockRequest session
 			before { define_set_in_session('pants', ['foo', 'bar', 'baz']) }
 
-			# first, check for valid request parameters
+			# first, test for valid request parameters
 			describe 'with valid information' do
 				# check the functionality when the name is unchanged
 				describe 'with same name' do
@@ -292,36 +292,46 @@ describe 'Sinatra test' do
 				end
 			end
 
+			# test for invalid request parameters
 			describe 'with invalid information' do
 
+				# check for PUT requests with an invalid name
 				describe 'with invalid name' do
+					# issue a PUT request to '/set/pants' with an invalid name and different vidnums
 					before { put '/sets/pants', { name: '', vidnums: 'one, two, three' } }
+					# check that the session does not change
 					it 'should not update the session' do
 						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['foo', 'bar', 'baz'] } })
 					end
+					# check that we are redirected to the edit page with an error message
 					it 'should show the old information with error' do
 						subject.should have_selector('h1', text: 'Edit pants')
 						subject.should have_selector("span[class='error']", text: 'invalid parameters')
 						subject.should have_selector("input[value='pants']")
 						subject.should have_selector("input[value='foo, bar, baz']")
 					end
+				end
 
-					describe 'with invalid vidnums' do
-						before { put '/sets/pants', { name: 'pants', vidnums: '' } }
-						it 'should not update the session' do
-							expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['foo', 'bar', 'baz'] } })
-						end
-						it 'should show the old information with error' do
-							subject.should have_selector('h1', text: 'Edit pants')
-							subject.should have_selector("span[class='error']", text: 'invalid parameters')
-							subject.should have_selector("input[value='pants']")
-							subject.should have_selector("input[value='foo, bar, baz']")
-						end
+				# check for PUT requests with invalid vidnums
+				describe 'with invalid vidnums' do
+					# issue a PUT request to '/set/pants' with an invalid name and different vidnums
+					before { put '/sets/pants', { name: 'pants', vidnums: '' } }
+					# check that the session does not change
+					it 'should not update the session' do
+						expect(session[:sets]).to eq({ "pants" => { name: 'pants', vidnums: ['foo', 'bar', 'baz'] } })
+					end
+					# check that we are redirected to the edit page with an error message
+					it 'should show the old information with error' do
+						subject.should have_selector('h1', text: 'Edit pants')
+						subject.should have_selector("span[class='error']", text: 'invalid parameters')
+						subject.should have_selector("input[value='pants']")
+						subject.should have_selector("input[value='foo, bar, baz']")
 					end
 				end
 			end
 		end
 
+		# check that the #update request redirects to the new set page with an error and the name field filled in (see above)
 		context 'without existing set' do
 			before { put '/sets/pants' }
 			it_behaves_like 'all pages'
@@ -329,20 +339,26 @@ describe 'Sinatra test' do
 		end
 	end
 
+	# test the play functionality
 	describe 'play set page', type: :feature do
 
+		# check that it works when the set exists
 		context 'with existing set' do
+			# first, create a set with valid video numbers (not sure that this is necessary), then issue a GET request to '/sets/pants/play'
 			before do
 				define_set_in_session('pants', ['X3AJcgfopdk', 'X3AJcgfopdk', 'X3AJcgfopdk'])
 				get '/sets/pants/play'
 			end
+			# check that it plays a video
 			it 'plays a video' do
+				# look for a param element named 'movie'
 				subject.should have_selector("param[name='movie']")
-				subject.should have_selector("embed[type='application/x-shockwave-flash']")
-				subject.should have_selector("embed[src='http://www.youtube.com/v/X3AJcgfopdk&autoplay=1']")
+				# check for an embedded flash video with the correct src attribute
+				subject.should have_selector("embed[type='application/x-shockwave-flash'][src='http://www.youtube.com/v/X3AJcgfopdk&autoplay=1']")
 			end
 		end
 
+		# check that the play request redirects to the new set page with an error and the name field filled in (see above)
 		context 'without existing set' do
 			before { get '/sets/pants/play' }
 			it_behaves_like 'all pages'
@@ -353,23 +369,29 @@ describe 'Sinatra test' do
 	# test the delete page
 	describe 'delete page', type: :feature do
 
+		# check that it works when the set exists
 		context 'with existing set' do
+			# first, create two sets in the session, one named 'pants' and one named 'fizzbuzz', and issue a GET request to '/sets/pants/delete'
 			before do
-				define_sets_in_session('pants', 'fizzbuzz')
+				define_set_in_session('pants')
 				get '/sets/pants/delete'
 			end
+			# check for template features
 			it_behaves_like 'all pages'
+			# look for specific feature from the delete page (title and form button)
 			it 'displays the delete page' do
 				subject.should have_selector('h1', 'Delete pants')
 				subject.should have_selector("input[value='Delete']")
 			end
 		end
 
+		# check that without an existing set it redirects to the sets index with an error message
 		context 'without existing sets' do
-			before do
-				get '/sets/pants/delete'
-			end
+			# just issue a GET request to 'sets/pants/delete' without creating the 'pants' set
+			before { get '/sets/pants/delete' }
+			# check for template features
 			it_behaves_like 'all pages'
+			# check for error and index page title
 			it 'displays the sets index with error' do
 				subject.should have_selector("span[class='error']", text: 'invalid set')
 				subject.should have_selector('h1', text: 'Sets')
@@ -377,19 +399,24 @@ describe 'Sinatra test' do
 		end
 	end
 
-	# test the #destroy action
+	# test the #destroy method
 	describe '#destroy method', type: :feature do
 
+		# define a variable for this block representing the Rack::Test session
 		let(:session) { last_request.env['rack.session'] }
 
+		# first, test for an existing set
 		context 'with existing set' do
+			# first, create two sets, one named 'pants' and one named 'fizzbuzz', then issue a DELETE request to '/sets/pants'
 			before do
 				define_sets_in_session('pants', 'fizzbuzz')
 				delete '/sets/pants'
 			end
+			# check that the set is removed from the session
 			it 'modifies the session' do
 				expect(session[:sets]).to eq({ "fizzbuzz" => { name: 'fizzbuzz', vidnums: ['a', 'b', 'c'] } })
 			end
+			# check that it redirects you to the set index without the deleted set's information
 			it_behaves_like 'all pages'
 			it 'displays the sets index' do
 				subject.should have_selector('h1', text: 'Sets')
@@ -398,6 +425,7 @@ describe 'Sinatra test' do
 			end
 		end
 
+		# test that without an existing set that the request simply redirects you to the set index page with an error message
 		context 'without existing sets' do
 			before do
 				delete '/sets/pants'
@@ -413,7 +441,7 @@ end
 
 # helpers
 
-# create a set in the Rack::Test MockSession
+# create a set in the Rack::Test MockSession (allows for the vidnums parameter to be missing)
 def define_set_in_session(name, vidnums=['a','b','c'])
 	get '/', {}, { 'rack.session' => { "sets" => { "#{name}" => { :name => "#{name}", :vidnums => ["#{vidnums[0]}", "#{vidnums[1]}", "#{vidnums[2]}"] } } } }
 end
